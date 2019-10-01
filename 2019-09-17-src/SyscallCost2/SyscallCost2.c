@@ -25,8 +25,8 @@ int main() {
 	
 	int startTime = GetTickCount();
 	while (ntries > 0) {
-		GetSystemInfo(&si);
-		//NtQueryTimerResolution( &MinimumResolution,&MaximumResolution,&CurrentResolution);
+		//GetSystemInfo(&si);
+		NtQueryTimerResolution( &MinimumResolution,&MaximumResolution,&CurrentResolution);
  
 		ntries--;
 	}
