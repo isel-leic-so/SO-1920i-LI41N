@@ -2,7 +2,7 @@
   File mapping using for shared memory.
   This is the writer process.
 
-  JM, 2015
+  JM, 2019
 ----------------------------------------------------------------*/ 
 
 #include "windows.h"

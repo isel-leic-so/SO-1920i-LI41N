@@ -1,6 +1,7 @@
 /* copyFile.cpp : Defines the entry point for the console application. */
 
-#include "stdafx.h"
+#include <Windows.h>
+#include <stdio.h>
 
 #define MBYTE (1024*1024)
 #define BLOCKSIZE (512*MBYTE) // 512Mb  copy  block
@@ -123,25 +124,25 @@ terminate:
 	return error;
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 	int res;
 
 	DWORD ti, tf;
  
 	if (argc != 3) {
-		_tprintf(_T("Usage: copyfile <src> <dst>\n"));
+		printf("Usage: copyfile <src> <dst>\n");
 		return 1;
 	}
 	
 	ti = GetTickCount();
 	if ((res=MyCopyFile(argv[1], argv[2])) < 0) {
-		_tprintf(_T("error %d copying file. System error=%d"), res, 
+		printf("error %d copying file. System error=%d", res, 
 			GetLastError());
 		exit(1);
 	}
 	tf = GetTickCount();
-	_tprintf(_T("\ndone in %dms!\n"), tf-ti);
+	printf("\ndone in %dms!\n", tf-ti);
 	return 0;
 }
 

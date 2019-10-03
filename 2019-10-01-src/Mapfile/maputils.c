@@ -1,5 +1,4 @@
-#include "stdafx.h"
-
+#include <Windows.h>
 #include "mapfile.h"
 
 // auxiliary method to convert the file access mode to file mapping access
