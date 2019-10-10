@@ -62,9 +62,8 @@ terminate:
 	if (mem!=NULL)	UnmapViewOfFile(mem);
 	if (Map != NULL) CloseHandle(Map);
 	
-	
+	getchar();	// to enabling view the final console state
 	return error;
-	
-	return 0;
+
 }
 

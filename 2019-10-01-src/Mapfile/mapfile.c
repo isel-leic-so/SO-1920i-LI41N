@@ -33,11 +33,14 @@ int main(int argc, char* argv[])
 		for (int i = 0; i < nints; ++i) {
 			printf("%d\n", curr[i]);
 		}
-		curr[8191] = 5;
+		//uncomment this and try again
+		//curr[8191] = 5;
 	}
 	 
 	
 	UnmapFile(&mapDesc);
+
+	getchar();	// to enabling view the final console state
 	return 0;
 }
 

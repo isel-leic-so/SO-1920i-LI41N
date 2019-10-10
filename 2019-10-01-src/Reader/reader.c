@@ -55,6 +55,8 @@ terminate:
 		printf("read %d from shared memory\n", res);
 	if (mem!=NULL)	UnmapViewOfFile(mem);
 	if (Map != NULL) CloseHandle(Map);
+
+	getchar();	// to enabling view the final console state
 	return res;
  
 }
