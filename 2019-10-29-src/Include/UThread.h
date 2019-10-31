@@ -21,7 +21,9 @@
 #include <Windows.h>
 
 typedef VOID * UT_ARGUMENT;
-typedef VOID (*UT_FUNCTION)(UT_ARGUMENT);
+
+//Now uthreads can return a result value
+typedef LONG (*UT_FUNCTION)(UT_ARGUMENT);
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,7 +72,7 @@ HANDLE UtCreate (UT_FUNCTION Function, UT_ARGUMENT Argument);
 // resources are released after the context switch to the next ready thread.
 //
 UTHREAD_API
-VOID UtExit ();
+VOID UtExit (LONG Result);
 
 //
 // Relinquishes the processor to the first user thread in the ready queue.
@@ -97,6 +99,13 @@ VOID UtDeactivate ();
 //
 UTHREAD_API
 VOID UtActivate (HANDLE ThreadHandle);
+
+//
+// Fill the long pointer content the thread Result if
+// the receiving thread is terminated
+// Returns true is the result is filled, false otherwise
+UTHREAD_API
+BOOL UtGetThreadResult(HANDLE hThread, PLONG res);
 
 #ifdef __cplusplus
 } // extern "C"

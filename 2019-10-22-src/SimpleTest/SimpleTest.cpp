@@ -91,7 +91,7 @@ VOID Test2() {
 int main () {
 	UtInit();
  
-	Test1();
+	Test2();
 	
 	 
 	UtEnd();

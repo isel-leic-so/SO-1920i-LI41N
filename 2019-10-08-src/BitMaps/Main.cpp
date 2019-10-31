@@ -1,7 +1,9 @@
 #include <Windows.h>
 
-void main() {
+int main() {
 	BITMAPFILEHEADER header;
 	BITMAPINFOHEADER info;
 	RGBTRIPLE pixel;
+
+	return 0;
 }

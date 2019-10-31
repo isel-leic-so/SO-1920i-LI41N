@@ -34,7 +34,7 @@ typedef struct _UTHREAD_CONTEXT_64 {
 	ULONGLONG RDI;
 	ULONGLONG RBX;
 	ULONGLONG RBP;
-	VOID (*RetAddr)();
+	VOID(*RetAddr)();
 } UTHREAD_CONTEXT_64, *PUTHREAD_CONTEXT_64;
 
 #define PUTHREAD_CONTEXT PUTHREAD_CONTEXT_64
@@ -61,9 +61,14 @@ typedef struct _UTHREAD_CONTEXT_32 {
 typedef struct _UTHREAD {
 	PUTHREAD_CONTEXT ThreadContext;
 	LIST_ENTRY       Link;
- 
-	UT_FUNCTION      Function;   
-	UT_ARGUMENT      Argument; 
+
+	LONG		     Result; // the thread result
+	BOOL			 Terminated; // If true, the thread is terminated
+								 // and the sole purpose is
+								 // to give his result to another
+								 // thread
+	UT_FUNCTION      Function;
+	UT_ARGUMENT      Argument;
 	PUCHAR           Stack;
 } UTHREAD, *PUTHREAD;
 
