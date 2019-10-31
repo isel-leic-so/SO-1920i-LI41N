@@ -459,6 +459,10 @@ HANDLE UtCreate64 (UT_FUNCTION Function, UT_ARGUMENT Argument) {
 	//
 	memset(Thread->Stack, 0, STACK_SIZE);
 
+
+	//
+	Thread->Terminated = FALSE;
+
 	//
 	// Memorize Function and Argument for use in InternalStart.
 	//
