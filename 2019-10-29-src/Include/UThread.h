@@ -105,6 +105,13 @@ VOID UtActivate (HANDLE ThreadHandle);
 // the receiving thread is terminated
 // Returns true is the result is filled, false otherwise
 UTHREAD_API
+BOOL UtTryGetThreadResult(HANDLE hThread, PLONG res);
+
+//
+// Fill the long pointer content with the thread Result if
+// the receiving thread is terminated
+// Otherwise the function will block until the thread termination
+UTHREAD_API
 BOOL UtGetThreadResult(HANDLE hThread, PLONG res);
 
 #ifdef __cplusplus

@@ -62,11 +62,15 @@ typedef struct _UTHREAD {
 	PUTHREAD_CONTEXT ThreadContext;
 	LIST_ENTRY       Link;
 
+
 	LONG		     Result; // the thread result
 	BOOL			 Terminated; // If true, the thread is terminated
 								 // and the sole purpose is
 								 // to give his result to another
 								 // thread
+	LIST_ENTRY		 TermWaiters;// List for threads waiting for this
+								 // thread termination
+						         
 	UT_FUNCTION      Function;
 	UT_ARGUMENT      Argument;
 	PUCHAR           Stack;

@@ -18,10 +18,19 @@ namespace Uthreads2UnitTests
 		UtEnd();
 	}
 
+	// auxiliary type to BlockingGetThreadResultTest test
+	typedef struct _RESULT_PARMS {
+		HANDLE hThread;
+		LONG result;
+		INT waitTime;
+	} RESULT_PARMS, *PRESULT_PARMS;
+
 
 	TEST_CLASS(UthreadTests)
 	{
 	private:
+		static const  int  WAIT_TIME = 5000;
+
 
 		//Thread function
 		static LONG Func1(UT_ARGUMENT arg) {
@@ -29,22 +38,63 @@ namespace Uthreads2UnitTests
 			return r;
 		}
 
+		// Thread to obtain result
+		static LONG Func2(UT_ARGUMENT arg) {
+			LONG r = (LONG)arg;
+			Sleep(WAIT_TIME);
+			return r;
+		}
+
+		// Thread getting the result
+		static LONG Func3(UT_ARGUMENT arg) {
+			PRESULT_PARMS parms = (PRESULT_PARMS)arg;
+			LONG r;
+
+			LONG startTime = GetTickCount();
+			UtGetThreadResult(parms->hThread, &r);
+			LONG endTime = GetTickCount();
+
+			parms->result = r;
+			parms->waitTime = endTime - startTime;
+			return r;
+		}
+
+
 	public:
 		
 
 		TEST_METHOD(SimpleGetThreadResultTest)
 		{
-			UtInit();
+			
 			LONG expected = 99L;
 			LONG result;
 
 			HANDLE t1 = UtCreate(Func1, (UT_ARGUMENT) expected);
 
 			UtRun();
-			Assert::IsTrue(UtGetThreadResult(t1, &result));
+			Assert::IsTrue(UtTryGetThreadResult(t1, &result));
 			Assert::AreEqual(expected, result);
 
-			UtEnd();
+		}
+
+		TEST_METHOD(BlockingGetThreadResultTest)
+		{
+			RESULT_PARMS parms;
+			LONG expected = 99L;
+		 
+			
+			// The result consumer thread
+			HANDLE t3 = UtCreate(Func3, (UT_ARGUMENT)&parms);
+
+			// The result provider thread
+			parms.hThread = UtCreate(Func2, (UT_ARGUMENT)expected);
+
+		
+
+			UtRun();
+			Assert::IsTrue(parms.waitTime >= WAIT_TIME);
+			Assert::AreEqual(expected, parms.result);
+
 		}
 
 	};

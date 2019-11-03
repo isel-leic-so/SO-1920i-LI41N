@@ -193,8 +193,17 @@ VOID UtRun() {
 //
 VOID UtExit (LONG Result) {
 	NumberOfThreads -= 1;	
+
+	// Support UtGetTHreadResult variants
 	RunningThread->Result = Result;
 	RunningThread->Terminated = TRUE;
+
+	while (!IsListEmpty(&RunningThread->TermWaiters)) {
+		PLIST_ENTRY pe = RemoveHeadList(&RunningThread->TermWaiters);
+		//InsertTailList(&ReadyQueue, pe);
+		UtActivate(CONTAINING_RECORD(pe, UTHREAD, Link));
+	}
+
 	InternalExit(RunningThread, ExtractNextReadyThread());
 	_ASSERTE(!"Supposed to be here!");
 }
@@ -265,7 +274,7 @@ VOID __fastcall CleanupThread (PUTHREAD Thread) {
 // Fill the long pointer content the thread Result if
 // the receiving thread is terminated
 // Returns true is the result is filled, false otherwise
-BOOL UtGetThreadResult(HANDLE hThread, PLONG res) {
+BOOL UtTryGetThreadResult(HANDLE hThread, PLONG res) {
 	PUTHREAD thread = (PUTHREAD)hThread;
 	if (!thread->Terminated) return FALSE;
 	*res = thread->Result;
@@ -274,7 +283,33 @@ BOOL UtGetThreadResult(HANDLE hThread, PLONG res) {
 	return TRUE;
 }
 
+//
+// Fill the long pointer content with the thread Result if
+// the receiving thread is terminated
+// Otherwise the function will block until the thread termination
+// Active Wait Solution
+UTHREAD_API
+BOOL UtGetThreadResult0(HANDLE hThread, PLONG res) {
+	PUTHREAD thread = (PUTHREAD)hThread;
+	while (!thread->Terminated) UtYield();
+	return UtTryGetThreadResult(hThread, res);
+}
 
+//
+// Fill the long pointer content with the thread Result if
+// the receiving thread is terminated
+// Otherwise the function will block until the thread termination
+// Passive Wait Solution
+UTHREAD_API
+BOOL UtGetThreadResult(HANDLE hThread, PLONG res) {
+	PUTHREAD thread = (PUTHREAD)hThread;
+	if (!thread->Terminated) {
+		InsertTailList(&thread->TermWaiters,
+			&RunningThread->Link);
+		UtDeactivate();
+	}
+	return UtTryGetThreadResult(hThread, res); 
+}
 
 //
 // functions with implementation dependent of X86 or x64 platform
@@ -301,8 +336,9 @@ HANDLE UtCreate32 (UT_FUNCTION Function, UT_ARGUMENT Argument) {
 	//
 	memset(Thread->Stack, 0, STACK_SIZE);
 
-	//
+	// Support for thread result
 	Thread->Terminated = FALSE;
+	InitializeListHead(&Thread->TermWaiters);
 
 	//
 	// Memorize Function and Argument for use in InternalStart.
