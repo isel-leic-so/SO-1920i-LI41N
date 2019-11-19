@@ -26,8 +26,7 @@ UTILS_API VOID BQ_Init(PBQUEUE q) {
 	InitializeListHead(&q->list);
 	q->mutex = CreateMutex(NULL, FALSE, NULL);
 	q->hasItems = CreateEvent(NULL, FALSE, FALSE, NULL);
-	q->hasSpace = CreateEvent(NULL, FALSE, TRUE, NULL);
-	// .... to complete
+	
 }
 
 UTILS_API VOID BQ_Put(PBQUEUE q, LPVOID item) {
@@ -40,6 +39,15 @@ UTILS_API LPVOID BQ_Get(PBQUEUE q) {
 
 	while (BQ_IsEmpty(q)) {
 		ReleaseMutex(q->mutex); // release the mutex since we are enter wait state
+		// It is possible that two or more "getters" are in this place exactly
+		// before entering on wait for event "hasItems"
+		// Since we leaved the mutex it is possible that,say, two "elems"
+		// are added into the queue at this exactly moment.
+		// If this is the case, only the first "getter" can proceed immediatly.
+		// The others, even on the presence of items in the list, will block, since
+		// the event memorize only one signal ( the signalization state is binary)
+		// Because of this necesssary we cannot use events to synchronize queue access.
+		// Enter semaphores...
 		WaitForSingleObject(q->hasItems, INFINITE);
 		WaitForSingleObject(q->mutex, INFINITE); // reenter critical section
 	}
@@ -50,11 +58,14 @@ UTILS_API LPVOID BQ_Get(PBQUEUE q) {
 	LPVOID item = n->item;
 	destroyNode(n);
 	
-	SetEvent(q->hasSpace);
-
 	return item;
 }
 
 BOOL BQ_IsEmpty(PBQUEUE q) {
 	return IsListEmpty(&q->list);
+}
+
+UTILS_API VOID BQ_Destroy(PBQUEUE q) {
+	CloseHandle(q->mutex);
+	CloseHandle(q->hasItems);
 }
