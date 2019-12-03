@@ -36,12 +36,14 @@ static DWORD WINAPI WorkerThreadFunc(LPVOID arg) {
 	return 0;
 }
 
+#define QUEUE_CAPACITY 128
 
 VOID TpInit() {
-	BQ_Init(&queue);
+	BQ_Init(&queue, QUEUE_CAPACITY);
 
 	for (int i = 0; i < NTHREADS; ++i) {
-		threads[i] = CreateThread(NULL, 0, WorkerThreadFunc, NULL, 0, NULL);
+		threads[i] = 
+			CreateThread(NULL, 0, WorkerThreadFunc, NULL, 0, NULL);
 	}
 }
 

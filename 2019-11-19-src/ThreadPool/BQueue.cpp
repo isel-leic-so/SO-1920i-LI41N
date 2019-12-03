@@ -22,36 +22,47 @@ static VOID destroyNode(PQNODE n) {
 
 #define MAXITEMS 20000
 
-UTILS_API VOID BQ_Init(PBQUEUE q) {
+UTILS_API VOID BQ_Init(PBQUEUE q, INT capacity) {
 	InitializeListHead(&q->list);
 	q->mutex = CreateMutex(NULL, FALSE, NULL);
-	q->hasItems = CreateEvent(NULL, FALSE, FALSE, NULL);
-	q->hasSpace = CreateEvent(NULL, FALSE, TRUE, NULL);
-	// .... to complete
+	q->hasItems = CreateSemaphore(NULL, 0, capacity, NULL);
+	q->hasSpace = CreateSemaphore(NULL, capacity, capacity, NULL);
+	q->maxSize = capacity;
+
 }
 
 UTILS_API VOID BQ_Put(PBQUEUE q, LPVOID item) {
-	// to complete
+	PQNODE pnode = createNode(item);
+
+	WaitForSingleObject(q->hasSpace, INFINITE);
+
+	WaitForSingleObject(q->mutex, INFINITE);
+
+	InsertTailList(&q->list, &pnode->link);
+	ReleaseMutex(q->mutex);
+
+	ReleaseSemaphore(q->hasItems, 1, NULL /* to get previous count*/);
 }
 
 UTILS_API LPVOID BQ_Get(PBQUEUE q) {
 	 
+	
+	WaitForSingleObject(q->hasItems, INFINITE);
+
+	// entrada em exclusão para obter o elemento à cabeça da fila
 	WaitForSingleObject(q->mutex, INFINITE);
 
-	while (BQ_IsEmpty(q)) {
-		ReleaseMutex(q->mutex); // release the mutex since we are enter wait state
-		WaitForSingleObject(q->hasItems, INFINITE);
-		WaitForSingleObject(q->mutex, INFINITE); // reenter critical section
-	}
 	PQNODE n = (PQNODE) RemoveHeadList(&q->list);
 	assert(&n->link != &q->list);
+	
 	ReleaseMutex(q->mutex);
+
+	ReleaseSemaphore(q->hasSpace, 1, NULL);
 
 	LPVOID item = n->item;
 	destroyNode(n);
 	
-	SetEvent(q->hasSpace);
-
+	 
 	return item;
 }
 

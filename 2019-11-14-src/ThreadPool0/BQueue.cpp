@@ -22,11 +22,12 @@ static VOID destroyNode(PQNODE n) {
 
 #define MAXITEMS 20000
 
-UTILS_API VOID BQ_Init(PBQUEUE q) {
+UTILS_API VOID BQ_Init(PBQUEUE q, INT capacity) {
 	InitializeListHead(&q->list);
 	q->mutex = CreateMutex(NULL, FALSE, NULL);
 	q->hasItems = CreateEvent(NULL, FALSE, FALSE, NULL);
 	
+	q->size = 0;
 }
 
 UTILS_API VOID BQ_Put(PBQUEUE q, LPVOID item) {
@@ -38,7 +39,8 @@ UTILS_API LPVOID BQ_Get(PBQUEUE q) {
 	WaitForSingleObject(q->mutex, INFINITE);
 
 	while (BQ_IsEmpty(q)) {
-		ReleaseMutex(q->mutex); // release the mutex since we are enter wait state
+		ReleaseMutex(q->mutex); 
+		// release the mutex since we are enter wait state
 		// It is possible that two or more "getters" are in this place exactly
 		// before entering on wait for event "hasItems"
 		// Since we leaved the mutex it is possible that,say, two "elems"
@@ -53,6 +55,8 @@ UTILS_API LPVOID BQ_Get(PBQUEUE q) {
 	}
 	PQNODE n = (PQNODE) RemoveHeadList(&q->list);
 	assert(&n->link != &q->list);
+
+	q->size--;
 	ReleaseMutex(q->mutex);
 
 	LPVOID item = n->item;
